@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">Lesson11</string>
+    <string name="app_name">One Activity</string>
     <string name="not_implemented">Not implemented:</string>
 
     <string-array name="words" >
