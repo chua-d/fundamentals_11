@@ -16,6 +16,11 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+
+        <provider
+            android:authorities="com.example.danceciliochua.lesson11.provider"
+            android:name=".MiniContentProvider" />
+
     </application>
 
 </manifest>

@@ -1,3 +1,11 @@
 <resources>
     <string name="app_name">Lesson11</string>
+    <string name="not_implemented">Not implemented:</string>
+
+    <string-array name="words" >
+        <item>Android</item>
+        <item>Activity</item>
+        <item>ContentProvider</item>
+        <item>ContentResolver</item>
+    </string-array>
 </resources>
