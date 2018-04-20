@@ -1,4 +1,4 @@
-package com.android.example.wordlistsql;
+package com.android.example.wordlistclient;
 
 import android.net.Uri;
 import android.provider.BaseColumns;

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.android.example.wordlistsql;
+package com.android.example.wordlistclient;
 
 /**
  * Data model for one word list item.
