@@ -33,6 +33,10 @@ limitations under the License. -->
         </activity>
         <activity android:name=".EditWordActivity"></activity>
 
+        <provider
+            android:name=".WordListContentProvider" android:authorities="com.android.example.wordlistsql.provider">
+        </provider>
+
     </application>
 
 </manifest>

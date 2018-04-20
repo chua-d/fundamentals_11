@@ -16,6 +16,7 @@
 
 package com.android.example.wordlistsql;
 
+import android.content.ContentValues;
 import android.content.Intent;
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
@@ -39,7 +40,6 @@ public class MainActivity extends AppCompatActivity {
     public static final int WORD_EDIT = 1;
     public static final int WORD_ADD = -1;
 
-    private WordListOpenHelper mDB;
     private RecyclerView mRecyclerView;
     private WordListAdapter mAdapter;
     private int mLastPosition;
@@ -49,12 +49,10 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        mDB = new WordListOpenHelper(this);
-
         // Create recycler view.
         mRecyclerView = (RecyclerView) findViewById(R.id.recyclerview);
         // Create an mAdapter and supply the data to be displayed.
-        mAdapter = new WordListAdapter(this, /* mDB.getAllEntries(),*/ mDB);
+        mAdapter = new WordListAdapter(this);
         // Connect the mAdapter with the recycler view.
         mRecyclerView.setAdapter(mAdapter);
         // Give the recycler view a default layout manager.
@@ -80,13 +78,16 @@ public class MainActivity extends AppCompatActivity {
                 String word = data.getStringExtra(EditWordActivity.EXTRA_REPLY);
 
                 // Update the database.
-                if (!TextUtils.isEmpty(word)) {
+                if (word.length() != 0) {
+                    ContentValues values = new ContentValues();
+                    values.put(Contract.WordList.KEY_WORD, word);
                     int id = data.getIntExtra(WordListAdapter.EXTRA_ID, -99);
 
                     if (id == WORD_ADD) {
-                        mDB.insert(word);
+                        getContentResolver().insert(Contract.CONTENT_URI, values);
                     } else if (id >= 0) {
-                        mDB.update(id, word);
+                        String[] selectionArgs = {Integer.toString(id)};
+                        getContentResolver().update(Contract.CONTENT_URI, values, Contract.WordList.KEY_ID, selectionArgs);
                     }
                     // Update the UI.
                     mAdapter.notifyDataSetChanged();

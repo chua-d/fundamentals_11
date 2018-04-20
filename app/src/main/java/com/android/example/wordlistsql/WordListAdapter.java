@@ -19,6 +19,8 @@ package com.android.example.wordlistsql;
 import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
+import android.database.Cursor;
+import android.net.Uri;
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -36,6 +38,13 @@ public class WordListAdapter extends RecyclerView.Adapter<WordListAdapter.WordVi
     /**
      *  Custom view holder with a text view and two buttons.
      */
+
+    private String queryUri = Contract.CONTENT_URI.toString();
+    private static final String[] projection = new String[] {Contract.CONTENT_PATH};
+    private String selectionClause = null;
+    private String selectionArgs[] = null;
+    private String sortOrder = "ASC";
+
     class WordViewHolder extends RecyclerView.ViewHolder {
         public final TextView wordItemView;
         Button delete_button;
@@ -56,13 +65,13 @@ public class WordListAdapter extends RecyclerView.Adapter<WordListAdapter.WordVi
     public static final String EXTRA_POSITION = "POSITION";
 
     private final LayoutInflater mInflater;
-    WordListOpenHelper mDB;
+
     Context mContext;
 
-    public WordListAdapter(Context context, WordListOpenHelper db) {
+    public WordListAdapter(Context context) {
         mInflater = LayoutInflater.from(context);
         mContext = context;
-        mDB = db;
+
     }
 
     @Override
@@ -73,28 +82,51 @@ public class WordListAdapter extends RecyclerView.Adapter<WordListAdapter.WordVi
 
     @Override
     public void onBindViewHolder(WordViewHolder holder, int position) {
-        WordItem current = mDB.query(position);
-        holder.wordItemView.setText(current.getWord());
+        String word = "";
+        int id = -1;
+
+        Cursor cursor = mContext.getContentResolver().query(Uri.parse(
+                queryUri), null, null, null, sortOrder);
+
+        if(cursor != null) {
+            if (cursor.moveToPosition(position)) {
+                int indexWord = cursor.getColumnIndex(Contract.WordList.KEY_WORD);
+                word = cursor.getString(indexWord);
+                holder.wordItemView.setText(word);
+                int indexId = cursor.getColumnIndex(Contract.WordList.KEY_ID);
+                id = cursor.getInt(indexId);
+            } else {
+                holder.wordItemView.setText("Error");
+            }
+        } else {
+            Log.e(TAG, "onBindViewHolder: Cursor is null.");
+        }
+
         // Keep a reference to the view holder for the click listener
         final WordViewHolder h = holder; // needs to be final for use in callback
         // Attach a click listener to the DELETE button.
         holder.delete_button.setOnClickListener(new MyButtonOnClickListener(
-                current.getId(), null)  {
+                id, null)  {
 
 
             @Override
             public void onClick(View v ) {
-                // You have to get the position like this, you can't hold a reference
-                Log.d (TAG + "onClick", "VHPos " + h.getAdapterPosition() + " ID " + id);
-                int deleted = mDB.delete(id);
-                if (deleted >= 0)
+                selectionArgs = new String[] {Integer.toString(id)};
+                int deleted = mContext.getContentResolver().delete(
+                        Contract.CONTENT_URI, Contract.CONTENT_PATH, selectionArgs);
+                if (deleted > 0) {
                     notifyItemRemoved(h.getAdapterPosition());
+                    notifyItemRangeChanged(h.getAdapterPosition(),
+                            getItemCount());
+                } else {
+                    Log.d (TAG,"Failed to delete " + deleted);
+                }
             }
         });
 
         // Attach a click listener to the EDIT button.
         holder.edit_button.setOnClickListener(new MyButtonOnClickListener(
-                current.getId(), current.getWord()) {
+                id, word) {
 
             @Override
             public void onClick(View v) {
@@ -112,7 +144,19 @@ public class WordListAdapter extends RecyclerView.Adapter<WordListAdapter.WordVi
 
     @Override
     public int getItemCount() {
-        return (int) mDB.count();
+        Cursor cursor = mContext.getContentResolver().query(
+                Contract.ROW_COUNT_URI, new String[] {"count(*) AS count"},
+                selectionClause, selectionArgs, sortOrder);
+
+        try {
+            cursor.moveToFirst();
+            int count = cursor.getInt(0);
+            cursor.close();
+            return count;
+        } catch (Exception e){
+            Log.d(TAG, "EXCEPTION getItemCount: " + e);
+            return -1;
+        }
     }
 }
 
